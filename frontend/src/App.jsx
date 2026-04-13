@@ -5,6 +5,11 @@ import NavigationAssistant from './components/NavigationAssistant';
 import Alerts from './components/Alerts';
 import StadiumMap from './components/StadiumMap';
 import AIAssistant from './components/AIAssistant';
+import CricketGround from './components/CricketGround';
+import FoodCourts from './components/FoodCourts';
+import Washrooms from './components/Washrooms';
+import EmergencyExits from './components/EmergencyExits';
+import ParkingGates from './components/ParkingGates';
 
 function App() {
   return (
@@ -12,23 +17,39 @@ function App() {
       <Header />
       <main className="dashboard-container">
         <div className="dashboard-grid">
-          <div className="grid-col-12">
-            <StadiumMap />
+          
+          {/* TOP SECTION: OVERVIEW */}
+          <div className="area-overview">
+            <CricketGround />
           </div>
           
-          <div className="grid-col-8">
-            <CrowdStatus />
-          </div>
-          <div className="grid-col-4">
-            <Alerts />
+          {/* MIDDLE LEFT: NAVIGATION & PHYSICAL MAP */}
+          <div className="area-left">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <StadiumMap />
+              <NavigationAssistant />
+              <CrowdStatus />
+            </div>
           </div>
 
-          <div className="grid-col-7" style={{ gridColumn: 'span 7' }}>
-            <NavigationAssistant />
+          {/* MIDDLE RIGHT: INTELLIGENCE & ALERTS */}
+          <div className="area-right">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
+              <AIAssistant />
+              <Alerts />
+            </div>
           </div>
-          <div className="grid-col-5" style={{ gridColumn: 'span 5' }}>
-            <AIAssistant />
+
+          {/* BOTTOM SECTION: PREMIUM SERVICES GRID */}
+          <div className="area-footer">
+             <div className="services-grid">
+                <FoodCourts />
+                <Washrooms />
+                <ParkingGates />
+                <EmergencyExits />
+             </div>
           </div>
+
         </div>
       </main>
     </>

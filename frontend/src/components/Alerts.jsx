@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SectionCard from './SectionCard';
-import { Bell, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Bell, AlertTriangle, ArrowRight, Zap } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -14,7 +14,6 @@ const Alerts = () => {
         const zones = [];
         snapshot.forEach(doc => zones.push({ id: doc.id, ...doc.data() }));
 
-        // Find best alternative (Lowest level)
         const lowZone = zones.find(z => z.level === 'Low');
         
         zones.forEach(zone => {
@@ -22,25 +21,23 @@ const Alerts = () => {
             newAlerts.push({
               id: `alert-${zone.id}`,
               type: 'danger',
-              title: 'Heavy Congestion Detected',
-              message: `${zone.id.toUpperCase().replace('-', ' ')} is currently at capacity.`,
-              suggestion: lowZone ? `Consider moving to ${lowZone.id.toUpperCase().replace('-', ' ')} (Low Crowd).` : null,
-              time: 'Just now'
+              title: 'STAND OVERCROWDED',
+              message: `${zone.name || zone.id} has reached maximum capacity.`,
+              suggestion: lowZone ? `Redirect fans to ${lowZone.name || lowZone.id}.` : null,
+              time: 'CRITICAL'
             });
           }
         });
 
-        // Add a default info alert if no high crowds
         if (newAlerts.length === 0) {
           newAlerts.push({
             id: 'default-info',
             type: 'info',
-            title: 'Welcome to MoveFast',
-            message: 'All zones are currently within safe capacity. Enjoy the event!',
-            time: 'Live'
+            title: 'Match Day Security',
+            message: 'All stands playing within safety bounds. Smooth flow.',
+            time: 'NORMAL'
           });
         }
-
         setAlerts(newAlerts);
       });
       return () => unsubscribe();
@@ -50,27 +47,34 @@ const Alerts = () => {
   }, []);
 
   return (
-    <SectionCard title="Live Alerts" icon={Bell}>
-      <div className="alerts-list">
+    <SectionCard title="Live Match Security" icon={Zap}>
+      <div className="alerts-list" style={{ gap: '1rem' }}>
         {alerts.map(alert => (
-          <div key={alert.id} className={`alert-item ${alert.type === 'info' ? 'info' : ''}`} style={{ flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <AlertTriangle size={20} color={alert.type === 'info' ? 'var(--secondary-color)' : 'var(--danger)'} />
-              <div className="alert-content">
-                <p style={{ fontWeight: 700, color: 'var(--primary-color)' }}>{alert.title}</p>
-                <p>{alert.message}</p>
-                <span className="alert-time">{alert.time}</span>
+          <div key={alert.id} className={`alert-item ${alert.type === 'info' ? 'info' : ''}`} style={{ 
+            background: alert.type === 'info' ? '#f0fdf4' : '#fef2f2', 
+            borderLeft: `5px solid ${alert.type === 'info' ? 'var(--success)' : 'var(--danger)'}`,
+            padding: '1rem',
+            borderRadius: '12px',
+            animation: alert.type === 'danger' ? 'alert-pulse 2s infinite' : 'none'
+          }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+              <AlertTriangle size={20} color={alert.type === 'info' ? 'var(--success)' : 'var(--danger)'} style={{ marginTop: '2px' }}/>
+              <div className="alert-content" style={{ flex: 1 }}>
+                <p style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)', textTransform: 'uppercase', fontFamily: 'var(--font-score)' }}>{alert.title}</p>
+                <p style={{ fontSize: '0.85rem', margin: '4px 0' }}>{alert.message}</p>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>MATCH STATUS: {alert.time}</span>
               </div>
             </div>
-            {alert.suggestion && (
-              <div style={{ background: 'white', padding: '8px 12px', borderRadius: '8px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #fee2e2' }}>
-                <ArrowRight size={14} color="var(--success)" />
-                <span style={{ fontWeight: 500 }}>{alert.suggestion}</span>
-              </div>
-            )}
           </div>
         ))}
       </div>
+      <style>{`
+        @keyframes alert-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+      `}</style>
     </SectionCard>
   );
 };

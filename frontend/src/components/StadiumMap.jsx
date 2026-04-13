@@ -3,70 +3,59 @@ import { useJsApiLoader, GoogleMap, Circle, InfoWindow } from '@react-google-map
 import SectionCard from './SectionCard';
 import { MapPin } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase'; // Import Firestore database
+import { db } from '../firebase';
 
 const mapContainerStyle = {
   width: '100%',
-  height: '400px',
-  borderRadius: '16px'
+  height: '500px',
+  borderRadius: '24px'
 };
 
 const center = { lat: 51.5387, lng: -0.0166 };
 
-// Fallback initial zones
 const defaultZones = [
-  { id: 'zone-a', name: 'Zone A (North Gate)', level: 'Low', center: { lat: 51.540, lng: -0.0166 }, radius: 70 },
-  { id: 'zone-b', name: 'Zone B (South Entrance)', level: 'High', center: { lat: 51.5370, lng: -0.0166 }, radius: 80 },
-  { id: 'zone-c', name: 'Zone C (East Concourse)', level: 'Medium', center: { lat: 51.5385, lng: -0.0140 }, radius: 75 }
+  { id: 'zone-a', name: 'Pavilion North', level: 'Low', center: { lat: 51.540, lng: -0.0166 }, radius: 70 },
+  { id: 'zone-b', name: 'Grand Stand South', level: 'High', center: { lat: 51.5370, lng: -0.0166 }, radius: 80 },
+  { id: 'zone-c', name: 'East Boundary Stand', level: 'Medium', center: { lat: 51.5385, lng: -0.0140 }, radius: 75 }
 ];
 
 const getColorForLevel = (level) => {
   switch(level?.toLowerCase()) {
-    case 'low': return '#10b981'; // green
-    case 'medium': return '#f59e0b'; // yellow
-    case 'high': return '#ef4444'; // red
-    default: return '#94a3b8'; // grey unknown
+    case 'low': return '#10b981';
+    case 'medium': return '#f59e0b';
+    case 'high': return '#ef4444';
+    default: return '#94a3b8';
   }
 };
 
 const StadiumMap = () => {
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: 'YOUR_API_KEY_PLACEHOLDER'
-  });
-
+  const { isLoaded } = useJsApiLoader({ id: 'google-map-script', googleMapsApiKey: 'YOUR_API_KEY_PLACEHOLDER' });
   const [activeZone, setActiveZone] = useState(null);
   const [zones, setZones] = useState(defaultZones);
 
   useEffect(() => {
-    // Attempt to listen to Firestore
     try {
       const unsubscribe = onSnapshot(collection(db, 'crowd_zones'), (snapshot) => {
         if (!snapshot.empty) {
           const dbZones = {};
           snapshot.forEach(doc => { dbZones[doc.id] = doc.data(); });
-          
-          // Merge Firebase data with hardcoded coordinates
           setZones(prev => prev.map(z => ({
             ...z,
             level: dbZones[z.id]?.level || z.level,
             timestamp: dbZones[z.id]?.timestamp
           })));
         }
-      }, (error) => {
-        console.warn("Firestore listener failed (likely due to missing config):", error);
       });
-
       return () => unsubscribe();
     } catch (e) {
-      console.warn("Could not attach Firestore listener.");
+      console.warn("Firestore listener failed");
     }
   }, []);
 
-  if (!isLoaded) return <SectionCard title="Live Stadium Map" icon={MapPin}><p>Loading Map...</p></SectionCard>;
+  if (!isLoaded) return <SectionCard title="Live Field View" icon={MapPin}><p>Preparing Pitch...</p></SectionCard>;
 
   return (
-    <SectionCard title="Live Stadium Map" icon={MapPin}>
+    <SectionCard title="Live Stadium Pitch View" icon={MapPin}>
       <div style={{ position: 'relative' }}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
@@ -75,8 +64,9 @@ const StadiumMap = () => {
           options={{
             disableDefaultUI: true, zoomControl: true,
             styles: [
-              { featureType: "poi.business", stylers: [{ visibility: "off" }] },
-              { featureType: "transit", elementType: "labels.icon", stylers: [{ visibility: "off" }] }
+              { featureType: "all", elementType: "geometry", stylers: [{ color: "#065f46" }] }, // Turf Green Base
+              { featureType: "water", stylers: [{ visibility: "off" }] },
+              { featureType: "poi", stylers: [{ visibility: "off" }] }
             ]
           }}
         >
@@ -88,9 +78,9 @@ const StadiumMap = () => {
                 center={zone.center}
                 radius={zone.radius}
                 options={{
-                  fillColor: zoneColor, fillOpacity: 0.5,
-                  strokeColor: zoneColor, strokeOpacity: 0.8,
-                  strokeWeight: 2, clickable: true, zIndex: 1
+                  fillColor: zoneColor, fillOpacity: 0.6,
+                  strokeColor: '#ffffff', strokeOpacity: 0.9,
+                  strokeWeight: 3, clickable: true, zIndex: 1
                 }}
                 onClick={() => setActiveZone({ ...zone, color: zoneColor })}
               />
@@ -99,10 +89,13 @@ const StadiumMap = () => {
 
           {activeZone && (
             <InfoWindow position={activeZone.center} onCloseClick={() => setActiveZone(null)}>
-              <div style={{ padding: '4px', color: '#0f172a' }}>
-                <strong style={{ display: 'block', fontSize: '1.1rem', marginBottom: '4px' }}>{activeZone.name}</strong>
-                <span>Crowd Level: <strong style={{ color: activeZone.color }}>{activeZone.level}</strong></span>
-                {activeZone.timestamp && <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>Updated: {new Date(activeZone.timestamp).toLocaleTimeString()}</div>}
+              <div style={{ padding: '8px', color: '#0f172a', fontFamily: 'var(--font-score)' }}>
+                <strong style={{ display: 'block', fontSize: '1rem', borderBottom: '2px solid var(--pitch-clay)', paddingBottom: '4px', marginBottom: '8px' }}>
+                  {activeZone.name}
+                </strong>
+                <div style={{ textTransform: 'uppercase', fontSize: '0.8rem' }}>
+                  Load: <span style={{ color: activeZone.color, fontWeight: 800 }}>{activeZone.level}</span>
+                </div>
               </div>
             </InfoWindow>
           )}

@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import SectionCard from './SectionCard';
-import { MessageSquare, Send, Bot, MapPin } from 'lucide-react';
+import { MessageSquare, Send, Bot, MapPin, Trophy } from 'lucide-react';
 
 const AIAssistant = () => {
   const [messages, setMessages] = useState([
-    { sender: 'ai', text: "Hi! I'm your MoveFast Assistant. Ask me for directions or the best uncrowded food spots near you!" }
+    { sender: 'ai', text: "Welcome to the IPL Match Day! I'm your Stand Concierge. Need the nearest bar or a low-crowd exit path?" }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState('Zone A (North Gate)');
+  const [userLocation, setUserLocation] = useState('Pavilion North');
 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-
     const userMsg = input.trim();
     setMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
     setInput('');
@@ -25,113 +24,70 @@ const AIAssistant = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg, userLocation })
       });
-      
       const data = await response.json();
-      
-      if (data.reply) {
-        setMessages(prev => [...prev, { sender: 'ai', text: data.reply }]);
-      } else if (data.fallback) {
-        setMessages(prev => [...prev, { sender: 'ai', text: data.fallback }]);
-      }
+      setMessages(prev => [...prev, { sender: 'ai', text: data.reply || data.fallback }]);
     } catch (error) {
-      console.error(error);
-      setMessages(prev => [...prev, { sender: 'ai', text: "Sorry, I'm having trouble connecting to the server!" }]);
+      setMessages(prev => [...prev, { sender: 'ai', text: "Network break! Please check your stadium connectivity." }]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SectionCard title="AI Stadium Guide" icon={MessageSquare}>
+    <SectionCard title="Match Day Concierge" icon={Trophy}>
       <div style={{ display: 'flex', flexDirection: 'column', height: '400px' }}>
         
-        {/* Context Selector */}
-        <div style={{ paddingBottom: '10px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <MapPin size={16} color="var(--secondary-color)" />
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>My Location:</span>
+        <div style={{ paddingBottom: '10px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MapPin size={16} color="var(--grass-green)" />
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Current Stand:</span>
           <select 
             value={userLocation} 
             onChange={e => setUserLocation(e.target.value)}
-            style={{ padding: '4px 8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.85rem', background: '#f8fafc', color: 'var(--text-main)', cursor: 'pointer' }}
+            style={{ padding: '4px 8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.85rem', background: 'white', fontWeight: 600 }}
           >
-            <option value="Zone A (North Gate)">Zone A (North Gate)</option>
-            <option value="Zone B (South Entrance)">Zone B (South Entrance)</option>
-            <option value="Zone C (East Concourse)">Zone C (East Concourse)</option>
-            <option value="Outside Stadium">Outside Stadium</option>
+            <option value="Pavilion North">Pavilion North</option>
+            <option value="Grand Stand South">Grand Stand South</option>
+            <option value="East Boundary Stand">East Boundary Stand</option>
           </select>
         </div>
 
-        {/* Chat History */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {messages.map((msg, i) => (
             <div key={i} style={{
               alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-              background: msg.sender === 'user' ? 'var(--primary-color)' : '#f1f5f9',
+              background: msg.sender === 'user' ? 'var(--grass-green)' : '#f8fafc',
               color: msg.sender === 'user' ? 'white' : 'var(--text-main)',
-              padding: '10px 14px',
+              padding: '12px 16px',
               borderRadius: '16px',
-              borderBottomRightRadius: msg.sender === 'user' ? '4px' : '16px',
-              borderBottomLeftRadius: msg.sender === 'ai' ? '4px' : '16px',
+              border: msg.sender === 'ai' ? '1px solid #e2e8f0' : 'none',
               maxWidth: '85%',
               display: 'flex',
-              gap: '8px',
-              lineHeight: 1.4,
-              fontSize: '0.95rem',
-              boxShadow: msg.sender === 'ai' ? '0 2px 4px rgba(0,0,0,0.02)' : 'none'
+              gap: '10px',
+              fontSize: '0.9rem',
+              lineHeight: 1.5
             }}>
-              {msg.sender === 'ai' && <Bot size={18} style={{ flexShrink: 0, marginTop: '2px', color: 'var(--secondary-color)' }}/>}
+              {msg.sender === 'ai' && <Bot size={18} style={{ flexShrink: 0, marginTop: '2px', color: 'var(--pitch-clay)' }}/>}
               <span>{msg.text}</span>
             </div>
           ))}
           {loading && (
-            <div style={{ alignSelf: 'flex-start', background: '#f1f5f9', padding: '10px 14px', borderRadius: '16px', borderBottomLeftRadius: '4px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Thinking about best routes...
-            </div>
+            <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>Calculating match day routes...</div>
           )}
         </div>
 
-        {/* Input Form */}
-        <form onSubmit={handleSend} style={{ display: 'flex', gap: '8px', marginTop: '10px', paddingTop: '10px', borderTop: '1px solid var(--border-color)' }}>
+        <form onSubmit={handleSend} style={{ display: 'flex', gap: '8px', paddingTop: '10px', borderTop: '1px solid #e2e8f0' }}>
           <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me for directions..."
+            type="text" value={input} onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask your concierge..."
             disabled={loading}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              borderRadius: '24px',
-              border: '1px solid var(--border-color)',
-              outline: 'none',
-              fontSize: '0.95rem',
-              background: '#f8fafc',
-              transition: 'border-color 0.2s'
-            }}
-            onFocus={(e) => e.target.style.borderColor = 'var(--secondary-color)'}
-            onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+            style={{ flex: 1, padding: '12px', borderRadius: '24px', border: '1px solid #cbd5e1', outline: 'none' }}
           />
           <button type="submit" disabled={loading} style={{
-            background: 'var(--secondary-color)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50%',
-            width: '46px',
-            height: '46px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            transition: 'transform 0.2s, background 0.2s',
-            boxShadow: '0 4px 6px rgba(14, 165, 233, 0.2)'
-          }}
-          onMouseOver={e => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
-          onMouseOut={e => !loading && (e.currentTarget.style.transform = 'none')}
-          >
-            <Send size={20} style={{ transform: 'translateX(-1px)' }}/>
+            background: 'var(--grass-green)', color: 'white', border: 'none', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <Send size={18} />
           </button>
         </form>
-
       </div>
     </SectionCard>
   );

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import SectionCard from './SectionCard';
-import { Users } from 'lucide-react';
+import { Target } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const defaultZones = [
-  { id: 'zone-a', name: 'Zone A (North Gate)', level: 'Low' },
-  { id: 'zone-b', name: 'Zone B (South Entrance)', level: 'High' },
-  { id: 'zone-c', name: 'Zone C (East Concourse)', level: 'Medium' },
+  { id: 'zone-a', name: 'Pavilion North', level: 'Low' },
+  { id: 'zone-b', name: 'Grand Stand South', level: 'High' },
+  { id: 'zone-c', name: 'East Boundary Stand', level: 'Medium' },
 ];
 
 const CrowdStatus = () => {
@@ -19,7 +19,6 @@ const CrowdStatus = () => {
         if (!snapshot.empty) {
           const dbZones = {};
           snapshot.forEach(doc => { dbZones[doc.id] = doc.data(); });
-          
           setZones(prev => prev.map(z => ({
             ...z,
             level: dbZones[z.id]?.level || z.level,
@@ -28,37 +27,47 @@ const CrowdStatus = () => {
             timestamp: dbZones[z.id]?.timestamp
           })));
         }
-      }, (error) => {
-        console.warn("Firestore Listener Error:", error);
       });
       return () => unsubscribe();
     } catch (e) {
-      console.warn("Could not attach listener");
+      console.warn("CrowdStatus listener failed");
     }
   }, []);
 
   return (
-    <SectionCard title="Crowd Status" icon={Users}>
-      <div className="crowd-list">
+    <SectionCard title="Live Stand Attendance" icon={Target}>
+      <div className="crowd-list" style={{ gap: '1rem' }}>
         {zones.map(zone => (
-          <div key={zone.id} className="crowd-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+          <div key={zone.id} className="crowd-item" style={{ 
+            background: 'white', 
+            border: '1px solid #e2e8f0', 
+            borderRadius: '12px', 
+            padding: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="crowd-zone">{zone.name}</span>
-                {zone.timestamp && <span style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>Last updated: {new Date(zone.timestamp).toLocaleTimeString()}</span>}
+                <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--grass-green)', textTransform: 'uppercase' }}>{zone.name}</span>
+                {zone.timestamp && <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Updated: {new Date(zone.timestamp).toLocaleTimeString()}</span>}
               </div>
               <span className={`density-badge density-${zone.level.toLowerCase()}`}>
                 {zone.level}
               </span>
             </div>
             
-            <div style={{ display: 'flex', gap: '12px', fontSize: '0.85rem', width: '100%', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-              <div style={{ color: 'var(--text-muted)' }}>
-                Trend: <span style={{ color: zone.trend === 'Rising' ? 'var(--danger)' : zone.trend === 'Falling' ? 'var(--success)' : 'var(--text-main)', fontWeight: 600 }}>{zone.trend}</span>
-              </div>
-              <div style={{ color: 'var(--text-muted)' }}>
-                Predicted (30m): <span className={`density-${(zone.predictedLevel || zone.level).toLowerCase()}`} style={{ fontWeight: 700 }}>{zone.predictedLevel || zone.level}</span>
-              </div>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              background: '#f8fafc', 
+              padding: '0.5rem 0.75rem', 
+              borderRadius: '8px',
+              fontSize: '0.8rem',
+              fontFamily: 'var(--font-score)'
+            }}>
+              <span style={{ color: 'var(--text-muted)' }}>Trend: <b style={{ color: zone.trend === 'Rising' ? 'var(--danger)' : 'var(--success)' }}>{zone.trend}</b></span>
+              <span style={{ color: 'var(--text-muted)' }}>PRED (30m): <b className={`density-${(zone.predictedLevel || zone.level).toLowerCase()}`}>{zone.predictedLevel || zone.level}</b></span>
             </div>
           </div>
         ))}

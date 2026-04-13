@@ -1,6 +1,7 @@
+// Alerts.jsx
 import React, { useState, useEffect } from 'react';
 import SectionCard from './SectionCard';
-import { Bell, AlertTriangle, ArrowRight, Zap } from 'lucide-react';
+import { Bell, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -11,33 +12,17 @@ const Alerts = () => {
     try {
       const unsubscribe = onSnapshot(collection(db, 'crowd_zones'), (snapshot) => {
         const newAlerts = [];
-        const zones = [];
-        snapshot.forEach(doc => zones.push({ id: doc.id, ...doc.data() }));
-
-        const lowZone = zones.find(z => z.level === 'Low');
-        
-        zones.forEach(zone => {
+        snapshot.forEach(doc => {
+          const zone = doc.data();
           if (zone.level === 'High') {
             newAlerts.push({
-              id: `alert-${zone.id}`,
-              type: 'danger',
-              title: 'STAND OVERCROWDED',
-              message: `${zone.name || zone.id} has reached maximum capacity.`,
-              suggestion: lowZone ? `Redirect fans to ${lowZone.name || lowZone.id}.` : null,
-              time: 'CRITICAL'
+              id: `alert-${doc.id}`,
+              title: 'Heavy Traffic',
+              message: `${doc.id.toUpperCase()} is approaching full capacity.`,
+              type: 'warning'
             });
           }
         });
-
-        if (newAlerts.length === 0) {
-          newAlerts.push({
-            id: 'default-info',
-            type: 'info',
-            title: 'Match Day Security',
-            message: 'All stands playing within safety bounds. Smooth flow.',
-            time: 'NORMAL'
-          });
-        }
         setAlerts(newAlerts);
       });
       return () => unsubscribe();
@@ -47,34 +32,32 @@ const Alerts = () => {
   }, []);
 
   return (
-    <SectionCard title="Live Match Security" icon={Zap}>
-      <div className="alerts-list" style={{ gap: '1rem' }}>
-        {alerts.map(alert => (
-          <div key={alert.id} className={`alert-item ${alert.type === 'info' ? 'info' : ''}`} style={{ 
-            background: alert.type === 'info' ? '#f0fdf4' : '#fef2f2', 
-            borderLeft: `5px solid ${alert.type === 'info' ? 'var(--success)' : 'var(--danger)'}`,
-            padding: '1rem',
-            borderRadius: '12px',
-            animation: alert.type === 'danger' ? 'alert-pulse 2s infinite' : 'none'
-          }}>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-              <AlertTriangle size={20} color={alert.type === 'info' ? 'var(--success)' : 'var(--danger)'} style={{ marginTop: '2px' }}/>
-              <div className="alert-content" style={{ flex: 1 }}>
-                <p style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-main)', textTransform: 'uppercase', fontFamily: 'var(--font-score)' }}>{alert.title}</p>
-                <p style={{ fontSize: '0.85rem', margin: '4px 0' }}>{alert.message}</p>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>MATCH STATUS: {alert.time}</span>
+    <SectionCard title="System Alerts" icon={Bell}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {alerts.length === 0 ? (
+          <div style={{ display: 'flex', gap: '12px', padding: '12px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #dcfce7' }}>
+            <ShieldCheck size={18} color="#16a34a" />
+            <div style={{ fontSize: '0.8125rem', color: '#166534', fontWeight: 500 }}>All systems operational. No active alerts.</div>
+          </div>
+        ) : (
+          alerts.map(alert => (
+            <div key={alert.id} style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              padding: '12px', 
+              background: '#fffbeb', 
+              borderRadius: '8px', 
+              border: '1px solid #fef3c7' 
+            }}>
+              <AlertTriangle size={18} color="#d97706" />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.8125rem', color: '#92400e' }}>{alert.title}</div>
+                <div style={{ fontSize: '0.75rem', color: '#b45309' }}>{alert.message}</div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
-      <style>{`
-        @keyframes alert-pulse {
-          0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-          70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-      `}</style>
     </SectionCard>
   );
 };

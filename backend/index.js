@@ -14,10 +14,12 @@ const GCP_LOCATION = process.env.GCP_LOCATION || 'us-central1';
 
 // Static spatial data mapping out the stadium features
 const stadiumTopology = `
-Stadium Amenities Map:
-- Zone A (North Gate): Main entrance, Merchandise Shop, Coffee Stand.
-- Zone B (South Entrance): VIP Lounge, Restrooms, Premium Dining.
-- Zone C (East Concourse): Food Court, First Aid, Main Bar.
+Stadium Amenities & Services Map:
+- Zone A (North): Secondary Exit, Merchandise Shop, Coffee Stand (Wait: 2m).
+- Zone B (South): Main Entry, VIP Lounge, Restrooms, Premium Dining (Wait: 15m).
+- Zone C (East): Food Court, First Aid, Main Bar (Wait: 10m). Best Food: Turbo Tacos.
+- Zone D (West): Fast Track Entry, Public Restrooms, Snacks (Wait: 3m).
+- EMERGENCY: Stand North provides the fastest exit to the main boulevard.
 `;
 
 app.get('/api/health', (req, res) => {
@@ -92,10 +94,11 @@ CURRENT CONTEXT:
 3. Stadium Topology: ${stadiumTopology}
 
 GUIDELINES:
-- If the user asks for food/drinks/restrooms, tell them the best place to go. 
-- ALWAYS cross-reference the topology with the live crowd data. For example, if they want food, and Zone C (Food Court) is "High" crowd, suggest alternative nearby options or warn them about the wait.
-- If they ask "Where should I go now?", suggest the least crowded area near them with amenities.
-- Keep answers very conversational, concise (2-3 sentences), incredibly helpful and smart.
+- SAFETY FIRST: If there is an emergency or congestion, prioritize evacuation routes via Zone A.
+- DINING: Recommend Zone D for snacks if Zone C is busy.
+- DYNAMIC PATHS: Suggest the "Best Route" shown on the map (the path leading to the greenest zone).
+- PERSPECTIVE: You are a tactical commander. Your tone is calm, precise, and hyper-efficient.
+- Keep answers very conversational, concise (1-2 sentences), and grounded in the LIVE DATA provided.
 - If the user specifies they are entering the stadium from a specific gate, factor that into directions.`;
 
   // 3. Query Gemini via Vertex AI

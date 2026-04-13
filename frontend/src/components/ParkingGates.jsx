@@ -1,38 +1,73 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import SectionCard from './SectionCard';
-import { Car, ArrowUpRight } from 'lucide-react';
+import { Car, CheckCircle2 } from 'lucide-react';
 
 const gates = [
-  { name: 'Gate A (Premium)', load: 45, status: 'Fast' },
-  { name: 'Gate B (General)', load: 85, status: 'Busy' },
-  { name: 'Gate C (Media)', load: 20, status: 'Fast' },
+  { name: 'Gate Alpha', occupancy: '42%', pct: 42, status: 'Fast', zone: 'zone-a' },
+  { name: 'Gate Beta', occupancy: '88%', pct: 88, status: 'Busy', zone: 'zone-b' },
+  { name: 'Gate Gamma', occupancy: '15%', pct: 15, status: 'Empty', zone: 'zone-d' },
 ];
 
-const ParkingGates = () => {
-  return (
-    <SectionCard title="Parking & Entry" icon={Car}>
-      <div className="services-list">
-        {gates.map((gate, i) => (
-          <div key={i} className="facility-item" style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '12px', marginBottom: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{gate.name}</span>
-              <span style={{ color: gate.load > 70 ? 'var(--danger)' : 'var(--success)', fontWeight: 800, fontSize: '0.7rem' }}>
-                {gate.status}
-              </span>
-            </div>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${gate.load}%`, background: gate.load > 70 ? 'var(--danger)' : 'var(--accent-blue)' }}></div>
-            </div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right' }}>
-              Capacity: {gate.load}%
-            </div>
-          </div>
-        ))}
+const ParkingGates = ({ selectedGate, onSelect, selectedZone }) => {
+  const filtered = useMemo(() => {
+    return selectedZone ? gates.filter(g => g.zone === selectedZone) : gates;
+  }, [selectedZone]);
 
-        <div style={{ marginTop: '10px', background: 'rgba(56, 189, 248, 0.1)', border: '1px dashed var(--accent-blue)', padding: '10px', borderRadius: '8px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ArrowUpRight size={14} color="var(--accent-blue)" />
-          <span><b>HINT:</b> Use Gate C for 10 min faster entry.</span>
-        </div>
+  // Proactive: Auto-detect best entry (lowest occupancy)
+  const bestGate = useMemo(() => {
+    return [...filtered].sort((a, b) => a.pct - b.pct)[0];
+  }, [filtered]);
+
+  return (
+    <SectionCard 
+      title="Entry Control" 
+      icon={Car}
+      className={selectedGate ? 'active-selection' : ''}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {filtered.length === 0 ? (
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>Gate inactive for this sector.</div>
+        ) : (
+          filtered.map((gate, i) => {
+            const isBest = gate.name === bestGate?.name;
+            const isSelected = gate.name === selectedGate;
+
+            return (
+              <div 
+                key={i} 
+                onClick={() => onSelect(gate.name)}
+                className="clickable-row"
+                style={{ 
+                  padding: '12px', 
+                  background: isSelected ? '#eff6ff' : '#f8fafc', 
+                  borderRadius: '8px', 
+                  border: isSelected ? '1px solid var(--brand-blue)' : '1px solid #f1f5f9',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.8125rem', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{gate.name}</span>
+                    {isBest && (
+                      <span className="best-badge">
+                        <CheckCircle2 size={10} style={{ marginRight: '4px' }} /> OPTIMAL
+                      </span>
+                    )}
+                  </div>
+                  <span style={{ color: gate.pct > 70 ? 'var(--brand-danger)' : 'var(--text-secondary)' }}>{gate.occupancy}</span>
+                </div>
+                <div className="intensity-bar">
+                   <div style={{ 
+                     width: gate.occupancy, 
+                     height: '100%', 
+                     background: gate.pct > 70 ? 'var(--brand-danger)' : 'var(--brand-blue)',
+                     transition: 'width 0.6s ease'
+                   }}></div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </SectionCard>
   );

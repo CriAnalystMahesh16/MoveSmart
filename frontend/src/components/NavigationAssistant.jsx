@@ -1,42 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import SectionCard from './SectionCard';
-import { Map, Navigation, Compass } from 'lucide-react';
+import { Compass, ArrowRight, Zap } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 
-const NavigationAssistant = () => {
+const NavigationAssistant = ({ isActive, onToggle }) => {
+  const [bestPath, setBestPath] = useState('Calculating...');
+  const [bestZone, setBestZone] = useState(null);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, 'crowd_zones'), (snapshot) => {
+      let zones = [];
+      snapshot.forEach(doc => zones.push({ id: doc.id, ...doc.data() }));
+      const weight = { 'Low': 1, 'Medium': 2, 'High': 3 };
+      const low = zones.sort((a, b) => (weight[a.level] || 1) - (weight[b.level] || 1))[0];
+      if (low) {
+        setBestZone(low);
+        setBestPath(low.name || low.id.toUpperCase());
+      }
+    });
+    return () => unsub();
+  }, []);
+
   return (
-    <SectionCard title="Match Day Exit Strategy" icon={Compass}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div className="nav-path" style={{ 
-          background: 'white', 
-          border: '1px solid #e2e8f0', 
-          padding: '1.25rem', 
-          borderRadius: '16px',
-          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-        }}>
-          <div className="nav-route" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 800, color: 'var(--grass-green)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            <Navigation size={18} />
-            <span>Pavilion -> Gate 1 (Fast Track)</span>
+    <SectionCard 
+      title="Best Route" 
+      icon={Compass}
+      className={isActive ? 'active-selection' : ''}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div 
+          onClick={onToggle}
+          className="clickable-row"
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px', 
+            padding: '12px', 
+            background: isActive ? '#eff6ff' : '#f8fafc', 
+            borderRadius: '8px', 
+            border: isActive ? '1px solid var(--brand-blue)' : '1px solid #dbeafe',
+            transition: 'all 0.2s'
+          }}
+        >
+          <div style={{ background: isActive ? 'var(--brand-blue)' : '#dbeafe', padding: '8px', borderRadius: '50%', color: isActive ? 'white' : 'var(--brand-blue)' }}>
+            <Compass size={20} />
           </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            Status: <span style={{ color: 'var(--success)', fontWeight: 700 }}>CLEAR</span> • EST: 4 MINS
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 600, color: isActive ? 'var(--brand-blue)' : 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {isActive ? 'Path Active' : 'Optimal Vector'}
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)' }}>{bestPath}</div>
           </div>
         </div>
 
-        <div className="nav-path" style={{ 
-          background: '#f8fafc', 
-          border: '1px solid #e2e8f0', 
-          padding: '1.25rem', 
-          borderRadius: '16px',
-          opacity: 0.8
-        }}>
-          <div className="nav-route" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-            <Navigation size={18} />
-            <span>Grand Stand -> South Exit</span>
+        {bestZone && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{ padding: '6px 12px', background: '#ecfdf5', color: '#065f46', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Zap size={12} /> Live Flow: {bestZone.level || 'Low'}
+            </span>
+            <button 
+              onClick={onToggle}
+              style={{ background: 'none', border: 'none', color: 'var(--brand-blue)', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              {isActive ? 'Hide Route' : 'Map Best Route'} <ArrowRight size={12} />
+            </button>
           </div>
-          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-            Status: <span style={{ color: 'var(--warning)', fontWeight: 700 }}>BUSY</span> • EST: 14 MINS
-          </div>
-        </div>
+        )}
       </div>
     </SectionCard>
   );

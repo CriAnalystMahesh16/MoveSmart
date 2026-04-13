@@ -1,14 +1,16 @@
 import React from 'react';
 
-const SectionCard = ({ title, icon: Icon, children, glow = false, className = "" }) => {
+const SectionCard = ({ title, icon: Icon, children, className = "" }) => {
   return (
-    <div className={`section-card ${glow ? 'glow-active' : ''} ${className}`}>
-      <div className="card-header">
-        <div className="card-icon-container">
-          {Icon && <Icon size={20} />}
+    <div className={`saas-card ${className}`}>
+      {title && (
+        <div className="card-title-pro">
+          <div style={{ color: 'var(--brand-blue)' }}>
+            {Icon && <Icon size={18} />}
+          </div>
+          {title}
         </div>
-        <h2 className="card-title">{title}</h2>
-      </div>
+      )}
       <div className="card-content">
         {children}
       </div>

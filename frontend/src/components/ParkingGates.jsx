@@ -3,9 +3,9 @@ import SectionCard from './SectionCard';
 import { Car, CheckCircle2 } from 'lucide-react';
 
 const gates = [
-  { name: 'Gate Alpha', occupancy: '42%', pct: 42, status: 'Fast', zone: 'zone-a' },
-  { name: 'Gate Beta', occupancy: '88%', pct: 88, status: 'Busy', zone: 'zone-b' },
-  { name: 'Gate Gamma', occupancy: '15%', pct: 15, status: 'Empty', zone: 'zone-d' },
+  { name: 'Gate Alpha', occupancy: '42%', pct: 42, status: 'Fast', zone: 'North' },
+  { name: 'Gate Beta', occupancy: '88%', pct: 88, status: 'Busy', zone: 'South' },
+  { name: 'Gate Gamma', occupancy: '15%', pct: 15, status: 'Empty', zone: 'West' },
 ];
 
 const ParkingGates = ({ selectedGate, onSelect, selectedZone }) => {

@@ -1,67 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SectionCard from './SectionCard';
-import { Send, Bot, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Zap, Trophy, TrendingDown } from 'lucide-react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const AIAssistant = () => {
   const [messages, setMessages] = useState([
-    { sender: 'ai', text: "Systems online. How can I assist with stadium movement?" }
+    { role: 'assistant', text: 'Operational Status: Optimal. Strategic recommendations updated.' }
   ]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState({ zone: 'North', food: 'Turbo Tacos' });
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    const userMsg = input.trim();
-    setMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
-    setInput('');
-    setLoading(true);
-
-    try {
-      const resp = await fetch('http://localhost:5000/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg, userLocation: 'North Stand' })
+  useEffect(() => {
+    // Listen to crowdData for zone recommendations
+    const unsub = onSnapshot(collection(db, 'crowdData'), (snapshot) => {
+      let zones = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        zones.push({ id: doc.id, level: data.crowdLevel || 'Low' });
       });
-      const data = await resp.json();
-      setMessages(prev => [...prev, { sender: 'ai', text: data.reply || data.fallback }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { sender: 'ai', text: "Comms disrupted. Checking bypass..." }]);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      if (zones.length > 0) {
+        const weight = { 'Low': 1, 'Medium': 2, 'High': 3 };
+        const low = zones.sort((a, b) => weight[a.level] - weight[b.level])[0];
+        setRecommendations(prev => ({ ...prev, zone: low.id }));
+      }
+    });
+    return () => unsub();
+  }, []);
 
   return (
-    <SectionCard title="Match Insights" icon={Sparkles} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '10px 0', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: '200px' }}>
-        {messages.map((m, i) => (
-          <div key={i} style={{ 
-            alignSelf: m.sender === 'user' ? 'flex-end' : 'flex-start',
-            maxWidth: '90%',
-            padding: '10px 14px',
-            borderRadius: '12px',
-            background: m.sender === 'user' ? 'var(--brand-blue)' : '#f1f5f9',
-            color: m.sender === 'user' ? 'white' : 'var(--text-primary)',
-            fontSize: '0.8125rem',
-            lineHeight: '1.4'
-          }}>
-            {m.text}
-          </div>
-        ))}
-        {loading && <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>AI is thinking...</div>}
-      </div>
+    <SectionCard title="AI Operations Hub" icon={Sparkles}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        
+        {/* RECOMMENDED SECTION */}
+        <div style={{ padding: '14px', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', borderRadius: '12px', border: '1px solid #bae6fd' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <Zap size={14} color="var(--brand-purple)" fill="var(--brand-purple)" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Strategy Highlights</span>
+           </div>
+           
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 <span style={{ fontSize: '0.75rem', color: '#075985', fontWeight: 600 }}>Optimal Stand</span>
+                 <span className="recommended-badge">{recommendations.zone}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 <span style={{ fontSize: '0.75rem', color: '#075985', fontWeight: 600 }}>Best Dining</span>
+                 <span className="recommended-badge">{recommendations.food}</span>
+              </div>
+           </div>
+        </div>
 
-      <form onSubmit={handleSend} style={{ marginTop: '1rem', display: 'flex', gap: '8px', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-        <input 
-          type="text" value={input} onChange={e => setInput(e.target.value)}
-          placeholder="Ask about crowds or stalls..."
-          style={{ flex: 1, background: '#f8fafc', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '8px 12px', fontSize: '0.8125rem', outline: 'none' }}
-        />
-        <button type="submit" style={{ background: 'var(--brand-blue)', border: 'none', borderRadius: '8px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
-          <Send size={16} />
-        </button>
-      </form>
+        {/* CHAT INTERFACE (MINIMIZED) */}
+        <div className="chat-area" style={{ height: '140px', overflowY: 'auto', padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9', fontSize: '0.75rem' }}>
+          {messages.map((m, i) => (
+            <div key={i} style={{ marginBottom: '8px', textAlign: m.role === 'assistant' ? 'left' : 'right' }}>
+              <div style={{ 
+                display: 'inline-block', 
+                padding: '8px 12px', 
+                borderRadius: '8px', 
+                background: m.role === 'assistant' ? '#fff' : 'var(--brand-blue)',
+                color: m.role === 'assistant' ? 'var(--text-primary)' : '#fff',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                {m.text}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <input 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask Operations AI..." 
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.8125rem' }} 
+          />
+          <button style={{ padding: '10px', borderRadius: '8px', background: 'var(--brand-blue)', color: '#white', border: 'none' }}>
+            <Send size={16} color="white" />
+          </button>
+        </div>
+      </div>
     </SectionCard>
   );
 };

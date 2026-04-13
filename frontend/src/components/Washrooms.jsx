@@ -1,12 +1,13 @@
+// Washrooms.jsx
 import React, { useMemo } from 'react';
 import SectionCard from './SectionCard';
 import { Droplet, Info } from 'lucide-react';
 
 const facilities = [
-  { name: 'North Stand A', status: 'Available', queue: 'None', cleanliness: 'Excellent', zone: 'zone-a' },
-  { name: 'East Concourse', status: 'Moderate', queue: '4 min', cleanliness: 'Good', zone: 'zone-c' },
-  { name: 'South VIP', status: 'Available', queue: 'None', cleanliness: 'Pristine', zone: 'zone-b' },
-  { name: 'West Wing', status: 'Busy', queue: '12 min', cleanliness: 'Fair', zone: 'zone-d' },
+  { name: 'North Stand A', status: 'Available', queue: 'None', cleanliness: 'Excellent', zone: 'North' },
+  { name: 'East Concourse', status: 'Moderate', queue: '4 min', cleanliness: 'Good', zone: 'East' },
+  { name: 'South VIP', status: 'Available', queue: 'None', cleanliness: 'Pristine', zone: 'South' },
+  { name: 'West Wing', status: 'Busy', queue: '12 min', cleanliness: 'Fair', zone: 'West' },
 ];
 
 const Washrooms = ({ selectedFacility, onSelect, selectedZone }) => {
@@ -58,7 +59,7 @@ const Washrooms = ({ selectedFacility, onSelect, selectedZone }) => {
                 {isSelected && (
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '8px' }}>
                     <Info size={12} />
-                    <span>Cleanliness: <b>{f.cleanliness}</b> • Location: {f.zone.toUpperCase()}</span>
+                    <span>Cleanliness: <b>{f.cleanliness}</b> • Location: {f.zone}</span>
                   </div>
                 )}
               </div>

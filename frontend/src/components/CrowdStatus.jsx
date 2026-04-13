@@ -1,4 +1,3 @@
-// CrowdStatus.jsx
 import React, { useState, useEffect } from 'react';
 import SectionCard from './SectionCard';
 import { Users } from 'lucide-react';
@@ -6,10 +5,10 @@ import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const defaultZones = [
-  { id: 'zone-a', name: 'North Stand', level: 'Low' },
-  { id: 'zone-b', name: 'South Stand', level: 'High' },
-  { id: 'zone-c', name: 'East Stand', level: 'Medium' },
-  { id: 'zone-d', name: 'West Stand', level: 'Low' },
+  { id: 'North', name: 'North Stand', level: 'Low' },
+  { id: 'South', name: 'South Stand', level: 'High' },
+  { id: 'East', name: 'East Stand', level: 'Medium' },
+  { id: 'West', name: 'West Stand', level: 'Low' },
 ];
 
 const levelConfig = {
@@ -23,10 +22,16 @@ const CrowdStatus = () => {
 
   useEffect(() => {
     try {
-      const unsubscribe = onSnapshot(collection(db, 'crowd_zones'), (snapshot) => {
+      const unsubscribe = onSnapshot(collection(db, 'crowdData'), (snapshot) => {
         if (!snapshot.empty) {
           const dbZones = {};
-          snapshot.forEach(doc => { dbZones[doc.id] = doc.data(); });
+          snapshot.forEach(doc => { 
+            const data = doc.data();
+            dbZones[doc.id] = {
+              ...data,
+              level: data.crowdLevel || 'Low' // Case-sensitive field access
+            }; 
+          });
           setZones(prev => prev.map(z => ({
             ...z,
             level: dbZones[z.id]?.level || z.level,

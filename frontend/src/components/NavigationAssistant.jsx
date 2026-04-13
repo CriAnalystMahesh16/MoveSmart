@@ -9,9 +9,16 @@ const NavigationAssistant = ({ isActive, onToggle }) => {
   const [bestZone, setBestZone] = useState(null);
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'crowd_zones'), (snapshot) => {
+    const unsub = onSnapshot(collection(db, 'crowdData'), (snapshot) => {
       let zones = [];
-      snapshot.forEach(doc => zones.push({ id: doc.id, ...doc.data() }));
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        zones.push({ 
+          id: doc.id, 
+          ...data,
+          level: data.crowdLevel || data.level || 'Low'
+        });
+      });
       const weight = { 'Low': 1, 'Medium': 2, 'High': 3 };
       const low = zones.sort((a, b) => (weight[a.level] || 1) - (weight[b.level] || 1))[0];
       if (low) {

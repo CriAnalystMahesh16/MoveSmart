@@ -1,18 +1,18 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Replace these placeholders with your actual Firebase project configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAJ6fSVsdnMni2lv6qfmPm96Vyvt-P6fT",
+  authDomain: "plucky-order-493107-m8.firebaseapp.com",
+  projectId: "plucky-order-493107-m8",
+  storageBucket: "plucky-order-493107-m8.firebasestorage.app",
+  messagingSenderId: "684035355688",
+  appId: "1:684035355688:web:5be2ebda78f6e84203f11d",
+  measurementId: "G-5NCKNLKHKV"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (HMR-safe)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Cloud Firestore and get a reference to the service
 const db = getFirestore(app);

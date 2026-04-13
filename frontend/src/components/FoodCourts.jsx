@@ -3,10 +3,10 @@ import SectionCard from './SectionCard';
 import { Utensils, Star, Clock, Trophy } from 'lucide-react';
 
 const stalls = [
-  { name: 'Turbo Tacos', icon: '🌮', wait: 5, rating: 4.8, zone: 'zone-a' },
-  { name: 'Catch Cafe', icon: '☕', wait: 2, rating: 4.9, zone: 'zone-c' },
-  { name: 'Arena Grill', icon: '🍔', wait: 8, rating: 4.5, zone: 'zone-b' },
-  { name: 'Pitch Pizza', icon: '🍕', wait: 12, rating: 4.2, zone: 'zone-d' },
+  { name: 'Turbo Tacos', icon: '🌮', wait: 5, rating: 4.8, zone: 'North' },
+  { name: 'Catch Cafe', icon: '☕', wait: 2, rating: 4.9, zone: 'East' },
+  { name: 'Arena Grill', icon: '🍔', wait: 8, rating: 4.5, zone: 'South' },
+  { name: 'Pitch Pizza', icon: '🍕', wait: 12, rating: 4.2, zone: 'West' },
 ];
 
 const FoodCourts = ({ selectedFood, onSelect, selectedZone }) => {
@@ -57,8 +57,8 @@ const FoodCourts = ({ selectedFood, onSelect, selectedZone }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{stall.name}</div>
                       {isBest && (
-                        <span className="best-badge" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Trophy size={10} /> BEST
+                        <span className="recommended-badge">
+                          <Trophy size={10} /> RECOMMENDED
                         </span>
                       )}
                     </div>

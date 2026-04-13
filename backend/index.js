@@ -25,17 +25,34 @@ app.get('/api/health', (req, res) => {
 });
 
 app.post('/api/update-crowd', async (req, res) => {
-  const { zoneId, level, density, capacity } = req.body;
+  const { zoneId, level, density, capacity, trend } = req.body;
   if (!db) return res.status(503).json({ error: 'Firebase DB not initialized' });
   if (!zoneId || !level) return res.status(400).json({ error: 'Missing zoneId or level' });
+
+  // Basic Prediction Logic
+  let predictedLevel = level;
+  const normalizedLevel = level.toLowerCase();
+  const normalizedTrend = (trend || 'stable').toLowerCase();
+
+  if (normalizedLevel === 'medium' && normalizedTrend === 'rising') {
+    predictedLevel = 'High';
+  } else if (normalizedLevel === 'high' && normalizedTrend === 'falling') {
+    predictedLevel = 'Medium';
+  } else if (normalizedLevel === 'low' && normalizedTrend === 'rising') {
+    predictedLevel = 'Medium';
+  }
 
   try {
     const docRef = db.collection('crowd_zones').doc(zoneId);
     await docRef.set({
-      level, density: density || 'Unknown', capacity: capacity || 0,
+      level,
+      density: density || 'Unknown',
+      capacity: capacity || 0,
+      trend: trend || 'Stable',
+      predictedLevel,
       timestamp: new Date().toISOString()
     }, { merge: true });
-    res.json({ status: 'success', message: `Zone ${zoneId} updated to ${level}` });
+    res.json({ status: 'success', message: `Zone ${zoneId} updated. Currently ${level}, Predicted: ${predictedLevel}` });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to update Firestore' });
